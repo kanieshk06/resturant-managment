@@ -3,6 +3,8 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import MobileBottomNav from './MobileBottomNav';
+import { NavProvider } from '@/context/NavContext';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -13,11 +15,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-content">
-        {children}
+    <NavProvider>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          {children}
+        </div>
+        <MobileBottomNav />
       </div>
-    </div>
+    </NavProvider>
   );
 }

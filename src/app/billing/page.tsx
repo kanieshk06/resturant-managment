@@ -253,8 +253,7 @@ export default function BillingPage() {
             <span style={{ fontSize: '14px', fontWeight: 600 }}>{statusMessage.text}</span>
           </div>
         )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1.2fr)', gap: '28px' }}>
+        <div className="billing-grid">
           {/* Left Column: Billing Form & Line Items */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Bill Header Info Card */}
@@ -534,7 +533,7 @@ export default function BillingPage() {
 
           {/* Right Column: Billing Summary & Payment Selection */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="card" style={{ position: 'sticky', top: '90px' }}>
+            <div className="card billing-summary-card">
               <h3 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-light)' }}>
                 Bill Calculation & Payment
               </h3>

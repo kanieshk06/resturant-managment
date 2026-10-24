@@ -171,14 +171,7 @@ export default function DashboardPage() {
         )}
 
         {/* 4 Summary Cards */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '20px',
-            marginBottom: '28px',
-          }}
-        >
+        <div className="dashboard-metrics-grid">
           {/* Card 1: Today's Total Income */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -362,7 +355,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Visual Bar Chart */}
-          <div style={{ height: '220px', display: 'flex', alignItems: 'flex-end', gap: '16px', padding: '10px 0 20px', borderBottom: '1px solid #f1f5f9' }}>
+          <div className="dashboard-chart-container">
             {data?.hourlyChart.map((slot) => {
               const heightPct = maxChartAmount > 0 ? (slot.amount / maxChartAmount) * 100 : 0;
               const displayHeight = Math.max(8, heightPct);
