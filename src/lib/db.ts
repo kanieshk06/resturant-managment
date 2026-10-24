@@ -2,16 +2,69 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// Ensure data directory exists
-const DB_PATH = path.join(process.cwd(), 'dinedesk.db');
+// Determine safe database path
+// On Vercel / AWS Lambda, process.cwd() is read-only. SQLite requires a writable directory (/tmp).
+function getDatabasePath(): string {
+  const isServerless = Boolean(
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.LAMBDA_TASK_ROOT
+  );
+
+  const cwd = process.cwd();
+  let isCwdWritable = true;
+  try {
+    const testPath = path.join(cwd, '.write-test.tmp');
+    fs.writeFileSync(testPath, '1');
+    fs.unlinkSync(testPath);
+  } catch {
+    isCwdWritable = false;
+  }
+
+  if (isServerless || !isCwdWritable) {
+    const tmpPath = path.join('/tmp', 'dinedesk.db');
+    const sourcePath = path.join(cwd, 'dinedesk.db');
+
+    // Copy bundled template to /tmp if not yet present in /tmp
+    if (!fs.existsSync(tmpPath) && fs.existsSync(sourcePath)) {
+      try {
+        fs.copyFileSync(sourcePath, tmpPath);
+      } catch (err) {
+        console.warn('Could not copy seed database to /tmp:', err);
+      }
+    }
+    return tmpPath;
+  }
+
+  return path.join(cwd, 'dinedesk.db');
+}
 
 // Singleton database connection
 let dbInstance: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!dbInstance) {
-    dbInstance = new Database(DB_PATH);
-    dbInstance.pragma('journal_mode = WAL');
+    const dbPath = getDatabasePath();
+    const isTmp = dbPath.startsWith('/tmp');
+
+    // Ensure directory exists
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch {}
+    }
+
+    dbInstance = new Database(dbPath);
+
+    // Use DELETE journal mode in serverless/tmp to prevent WAL lock issues
+    if (isTmp) {
+      dbInstance.pragma('journal_mode = DELETE');
+      dbInstance.pragma('synchronous = NORMAL');
+    } else {
+      dbInstance.pragma('journal_mode = WAL');
+    }
+
     dbInstance.pragma('foreign_keys = ON');
     initTables(dbInstance);
   }
